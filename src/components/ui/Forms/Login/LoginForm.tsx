@@ -16,6 +16,7 @@ import {
   CardBody,
   CardHeader,
   CardFooter,
+  Button,
 } from "@nextui-org/react";
 import { DANGER_TOAST, SUCCESS_TOAST } from "@/components";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,6 +31,7 @@ interface IFormData {
 export const LoginForm: FC = () => {
   const router = useRouter();
   const { loginUser } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
 
   const {
     handleSubmit,
@@ -42,6 +44,7 @@ export const LoginForm: FC = () => {
   const [visible, setVisible] = useState<boolean>(false);
 
   const clientAction: SubmitHandler<IFormData> = async (data) => {
+    setLoading(true);
     try {
       const result = await loginUser(data.user_email, data.user_password);
 
@@ -52,6 +55,7 @@ export const LoginForm: FC = () => {
         setError("user_password", {
           message: "Correo o contraseña inválidos",
         });
+        setLoading(false);
         return null;
       }
 
@@ -61,6 +65,7 @@ export const LoginForm: FC = () => {
         setError("user_email", {
           message: "Este correo no ha sido verificado",
         });
+        setLoading(false);
         return null;
       } else if (
         isEmailVerifiedRes.message === "Este usuario se encuentra inactivo"
@@ -68,9 +73,10 @@ export const LoginForm: FC = () => {
         setError("user_email", {
           message: "Este usuario se encuentra inactivo",
         });
+        setLoading(false);
         return null;
       }
-      
+
       const res: SignInResponse | undefined = await signIn("credentials", {
         ...data,
         redirect: false,
@@ -83,14 +89,17 @@ export const LoginForm: FC = () => {
         setError("user_password", {
           message: "Correo o contraseña inválidos",
         });
+        setLoading(false);
       }
       if (res && res.ok && res.status === 200) {
         toast("¡Bienvenido!", SUCCESS_TOAST);
+        setLoading(false);
         router.push("/home");
         router.refresh();
         return;
       }
     } catch (e) {
+      setLoading(false);
       console.info("[ERROR_CLIENT_ACTION]", e);
       toast("¡Algo salio mal!", DANGER_TOAST);
     }
@@ -170,12 +179,13 @@ export const LoginForm: FC = () => {
                   </div>
                 </div>
                 <div>
-                  <button
+                  <Button
                     type="submit"
+                    isLoading={loading}
                     className="w-full flex justify-center bg-green-800 hover:bg-green-700 text-gray-100 p-3  rounded-lg tracking-wide font-semibold  cursor-pointer transition ease-in duration-500"
                   >
                     Iniciar sesión
-                  </button>
+                  </Button>
                 </div>
                 <div className="flex items-center justify-center space-x-2 my-5">
                   <span className="h-px w-16 bg-gray-400"></span>
@@ -187,6 +197,7 @@ export const LoginForm: FC = () => {
                 <div className="flex justify-center gap-5 w-full ">
                   <button
                     type="button"
+                    disabled={loading}
                     onClick={() => signIn("google")}
                     className="w-full flex items-center justify-center mb-6 md:mb-0 border border-gray-300 hover:border-gray-500 hover:text-yellow-700 dark:text-gray-300 dark:hover:text-yellow-700 text-sm text-gray-500 p-3  rounded-lg tracking-wide font-medium  cursor-pointer transition ease-in duration-500"
                   >

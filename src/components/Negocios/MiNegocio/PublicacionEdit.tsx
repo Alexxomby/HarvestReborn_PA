@@ -84,10 +84,10 @@ export const PublicacionEdit = ({ lotes, publicacion }: Props) => {
             const file = new File([blob], url.split("/").pop() ?? "");
             files.push(file);
           });
-        setImages(files);
+        files.forEach((file) => images.push(file));
       });
     }
-  }, []);
+  }, [publicacion.images_publicacion]);
 
   const {
     handleSubmit,
